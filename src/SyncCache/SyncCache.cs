@@ -6,19 +6,19 @@ namespace Noogadev.SyncCache;
 /// <summary>
 /// Per-<typeparamref name="K"/> typed facade over the process memory cache and topic purge propagation.
 /// </summary>
-/// <typeparam name="K">Cached-item definition type; must have a parameterless constructor.</typeparam>
+/// <typeparam name="K">Cached-item definition type; resolved from DI so <typeparamref name="K"/> may use constructor injection.</typeparam>
 /// <typeparam name="T">Cached value type.</typeparam>
-public sealed class SyncCache<K, T> where K : ICachedItem<T>, new()
+public sealed class SyncCache<K, T> where K : ICachedItem<T>
 {
     private readonly K _item;
     private readonly ISyncCacheTopicProvider _topic;
 
     /// <summary>
-    /// Creates a cache that uses <paramref name="topic"/> for cross-instance invalidation.
+    /// Creates a cache that uses <paramref name="item"/> for namespace and value factory and <paramref name="topic"/> for cross-instance invalidation.
     /// </summary>
-    public SyncCache(ISyncCacheTopicProvider topic)
+    public SyncCache(K item, ISyncCacheTopicProvider topic)
     {
-        _item = new K();
+        _item = item;
         _topic = topic;
     }
 

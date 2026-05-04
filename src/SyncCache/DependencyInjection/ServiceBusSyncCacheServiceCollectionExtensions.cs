@@ -18,7 +18,7 @@ public static class ServiceBusSyncCacheServiceCollectionExtensions
     /// <param name="services">Application services.</param>
     /// <param name="configure">Binds <see cref="ServiceBusSyncCacheOptions"/>.</param>
     /// <param name="cachedItemAssemblies">
-    /// Assemblies to scan for non-abstract classes with a parameterless constructor implementing <see cref="ICachedItem{T}"/>.
+    /// Assemblies to scan for non-abstract classes implementing <see cref="ICachedItem{T}"/> (constructors are satisfied by the service collection).
     /// When empty, <see cref="Assembly.GetEntryAssembly"/> is used when non-null.
     /// </param>
     /// <returns><paramref name="services"/>.</returns>
@@ -58,8 +58,6 @@ public static class ServiceBusSyncCacheServiceCollectionExtensions
             {
                 if (type is not { IsClass: true, IsAbstract: false })
                     continue;
-                if (type.GetConstructor(Type.EmptyTypes) == null)
-                    continue;
 
                 foreach (var iface in type.GetInterfaces())
                 {
@@ -68,6 +66,7 @@ public static class ServiceBusSyncCacheServiceCollectionExtensions
 
                     var valueType = iface.GetGenericArguments()[0];
                     var syncCacheType = typeof(SyncCache<,>).MakeGenericType(type, valueType);
+                    services.TryAdd(ServiceDescriptor.Scoped(type, type));
                     services.TryAdd(ServiceDescriptor.Scoped(syncCacheType, syncCacheType));
                 }
             }
